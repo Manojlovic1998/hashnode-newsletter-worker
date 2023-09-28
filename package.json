@@ -1,7 +1,10 @@
 {
-  "name": "test",
+  "name": "hashnode-newsletter-worker",
   "version": "0.0.0",
   "private": true,
+  "author": "Nemanja Manojlovic",
+  "repository": "https://github.com/Manojlovic1998/hashnode-newsletter-worker",
+  "license": "GPL-2.0",
   "scripts": {
     "deploy": "wrangler deploy",
     "start": "wrangler dev"

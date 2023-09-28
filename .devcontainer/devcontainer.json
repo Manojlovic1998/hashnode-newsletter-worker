@@ -1,0 +1,45 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/alpine
+{
+  // Container name
+  "name": "hashnode-newsletter-worker",
+
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "build": {
+    "dockerfile": "./Dockerfile",
+    "target": "dev",
+    "context": "../"
+  },
+
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {},
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [8787, 8080],
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "streetsidesoftware.code-spell-checker",
+        "tombonnike.vscode-status-bar-format-toggle"
+      ]
+    }
+  },
+
+  // Mount the source code into the container.
+  // Change the path to suit your project name /home/node/<your-project-name> or use predefined vars
+  // More Info: https://code.visualstudio.com/docs/editor/variables-reference
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/node/hashnode-newsletter-worker,type=bind",
+
+  // Change the path to suit your project name /home/node/<your-project-name>
+  "workspaceFolder": "/home/node/hashnode-newsletter-worker",
+
+  // Run commands in the container after it is created.
+  "postCreateCommand": ". .devcontainer/init.sh",
+
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  "remoteUser": "node"
+}
