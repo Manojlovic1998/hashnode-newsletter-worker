@@ -8,19 +8,19 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-export interface Env {
+interface Env {
 	// Example binding to KV. Learn more at https://developers.cloudflare.com/workers/runtime-apis/kv/
 	// MY_KV_NAMESPACE: KVNamespace;
-	//
+	HASHNODE_API_URL: string;
 	// Example binding to Durable Object. Learn more at https://developers.cloudflare.com/workers/runtime-apis/durable-objects/
 	// MY_DURABLE_OBJECT: DurableObjectNamespace;
-	//
+	HASHNODE_SUBSCRIBE_ENDPOINT: string;
 	// Example binding to R2. Learn more at https://developers.cloudflare.com/workers/runtime-apis/r2/
 	// MY_BUCKET: R2Bucket;
-	//
+	HASHNODE_PUBLICATION_ID: string;
 	// Example binding to a Service. Learn more at https://developers.cloudflare.com/workers/runtime-apis/service-bindings/
 	// MY_SERVICE: Fetcher;
-	//
+	ALLOWED_HOST: Array<string>;
 	// Example binding to a Queue. Learn more at https://developers.cloudflare.com/queues/javascript-apis/
 	// MY_QUEUE: Queue;
 }
@@ -30,8 +30,8 @@ interface RequestBody {
 	// Add other properties if needed
 }
 
-const handler: ExportedHandler = {
-	async fetch(request, env, ctx) {
+const handler = {
+	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		/**
 		 * Get the request body as json.
 		 *
@@ -94,11 +94,14 @@ const handler: ExportedHandler = {
 		 * @param request
 		 */
 		const subscribeResHandler = async (request: Request) => {
-			const currentUrl = new URL(request.url);
+			const reqOrigin = (await request.headers.get('origin')) || '';
 
-			if (currentUrl.host !== 'nemanjamanojlovic.com') {
+			if (!env.ALLOWED_HOST.includes(reqOrigin)) {
 				return new Response('Forbidden', {
 					status: 403,
+					headers: {
+						'Access-Control-Allow-Origin': env.ALLOWED_HOST[0],
+					},
 				});
 			}
 
@@ -108,7 +111,7 @@ const handler: ExportedHandler = {
 					status: 405,
 					headers: {
 						Allow: 'POST',
-						'Access-Control-Allow-Origin': 'https://nemanjamanojlovic.com',
+						'Access-Control-Allow-Origin': reqOrigin,
 					},
 				});
 			}
@@ -120,7 +123,7 @@ const handler: ExportedHandler = {
 					status: 400,
 					headers: {
 						'Content-Type': 'text/plain',
-						'Access-Control-Allow-Origin': 'https://nemanjamanojlovic.com',
+						'Access-Control-Allow-Origin': reqOrigin,
 					},
 				});
 			}
@@ -132,13 +135,13 @@ const handler: ExportedHandler = {
 					status: 400,
 					headers: {
 						'Content-Type': 'text/plain',
-						'Access-Control-Allow-Origin': 'https://nemanjamanojlovic.com',
+						'Access-Control-Allow-Origin': reqOrigin,
 					},
 				});
 			}
 
 			const headers = new Headers({
-				'Access-Control-Allow-Origin': 'https://nemanjamanojlovic.com',
+				'Access-Control-Allow-Origin': reqOrigin,
 				'Access-Control-Allow-Methods': 'POST',
 				'Access-Control-Allow-Headers': 'Content-Type',
 				'Access-Control-Max-Age': '86400',
