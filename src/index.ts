@@ -8,6 +8,8 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
+import { isAllowedOrigin } from './utils/utils';
+
 interface Env {
 	// Example binding to KV. Learn more at https://developers.cloudflare.com/workers/runtime-apis/kv/
 	// MY_KV_NAMESPACE: KVNamespace;
@@ -87,6 +89,32 @@ const handler = {
 			return subscribeResponse;
 		};
 
+		const handleOptions = async (request: Request) => {
+			const reqOrigin = (await request.headers.get('origin')) || '';
+
+			if (
+				request.headers.get('Access-Control-Request-Method') !== null &&
+				request.headers.get('Access-Control-Request-Headers') !== null &&
+				isAllowedOrigin(reqOrigin, env.ALLOWED_HOST)
+			) {
+				// Handle CORS preflight requests.
+				return new Response(null, {
+					headers: {
+						'Access-Control-Allow-Origin': reqOrigin,
+						'Access-Control-Allow-Methods': 'POST,OPTIONS',
+						'Access-Control-Allow-Headers': 'Content-Type',
+					},
+				});
+			} else {
+				// Handle standard OPTIONS request.
+				return new Response(null, {
+					headers: {
+						Allow: 'POST, OPTIONS',
+					},
+				});
+			}
+		};
+
 		/**
 		 * Wraps getReqBody and subscribe functions and returns the response to the client
 		 * with the appropriate status code and CORS headers.
@@ -96,13 +124,18 @@ const handler = {
 		const subscribeResHandler = async (request: Request) => {
 			const reqOrigin = (await request.headers.get('origin')) || '';
 
-			if (!env.ALLOWED_HOST.includes(reqOrigin)) {
+			if (!isAllowedOrigin(reqOrigin, env.ALLOWED_HOST)) {
 				return new Response('Forbidden', {
 					status: 403,
 					headers: {
 						'Access-Control-Allow-Origin': env.ALLOWED_HOST[0],
 					},
 				});
+			}
+
+			// if request method is OPTIONS return 200
+			if (request.method === 'OPTIONS') {
+				return await handleOptions(request);
 			}
 
 			// if request method is not POST return 405
