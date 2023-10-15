@@ -16,7 +16,6 @@ interface Env {
 	HASHNODE_API_URL: string;
 	// Example binding to Durable Object. Learn more at https://developers.cloudflare.com/workers/runtime-apis/durable-objects/
 	// MY_DURABLE_OBJECT: DurableObjectNamespace;
-	HASHNODE_SUBSCRIBE_ENDPOINT: string;
 	// Example binding to R2. Learn more at https://developers.cloudflare.com/workers/runtime-apis/r2/
 	// MY_BUCKET: R2Bucket;
 	HASHNODE_PUBLICATION_ID: string;
@@ -67,25 +66,24 @@ const handler = {
 			// Hashnode API URL (change this to your own blog URL)
 			const hashnodeAPI = env.HASHNODE_API_URL;
 			// Hashnode API endpoint
-			const subscribeEndpoint = env.HASHNODE_SUBSCRIBE_ENDPOINT;
 			const publicationId = env.HASHNODE_PUBLICATION_ID;
 
-			const subscribeURL = `${hashnodeAPI}${subscribeEndpoint}`;
+			const query = `mutation {
+  subscribeToNewsletter(input: {publicationId: "${publicationId}", email: "${email}"}) {
+    status
+  }
+}`;
 
 			const subscribeOptions = {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({
-					publicationId,
-					email,
-				}),
+				body: JSON.stringify({ query }),
 			};
 
-			const subscribeRequest = new Request(subscribeURL, subscribeOptions);
+			const subscribeRequest = new Request(hashnodeAPI, subscribeOptions);
 			const subscribeResponse = await fetch(subscribeRequest);
-
 			return subscribeResponse;
 		};
 
