@@ -9,6 +9,7 @@
  */
 
 import { isAllowedOrigin } from './utils/utils';
+import isEmail from 'validator/lib/isEmail';
 
 interface Env {
 	// Example binding to KV. Learn more at https://developers.cloudflare.com/workers/runtime-apis/kv/
@@ -163,6 +164,18 @@ const handler = {
 
 			if (!email) {
 				return new Response('Email is required', {
+					status: 400,
+					headers: {
+						'Content-Type': 'text/plain',
+						'Access-Control-Allow-Origin': reqOrigin,
+					},
+				});
+			}
+
+			// validate email
+
+			if (!isEmail(email)) {
+				return new Response('Invalid email', {
 					status: 400,
 					headers: {
 						'Content-Type': 'text/plain',
